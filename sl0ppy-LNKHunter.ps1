@@ -1,3 +1,35 @@
+<#
+.SYNOPSIS
+    sl0ppy-ExecGhost – Scans for vulnerable executables that can be leveraged for UAC bypass or privilege escalation.
+
+.DESCRIPTION
+    This tool searches key system directories for known abusable executables and LOLBins (e.g., mshta.exe, certutil.exe, cmstp.exe).
+    Useful for red teams, threat emulation, and post-exploitation recon to identify escalation and execution paths.
+    Includes support for Windows 10, 11, 12 (pre-release), and Server 2019/2022.
+
+.AUTHOR
+    P. Hoogeveen (@x0xr00t) – Sl0ppyRoot Team  
+    Partial dev by @keytrap-x86 – OS version logic enhancements.
+
+.VERSION
+    20241007
+
+.TOOLNAME
+    sl0ppy-ExecGhost
+
+.IMPACT
+    Privilege Escalation · LOLBin Discovery · Living-off-the-Land Enumeration
+
+.METHODS
+    DLLReflection · CMSTP Bypass · Executable Hijack Path Scan
+
+.LICENSE
+    Sl0ppyRed™ CyberOps Arsenal – Internal Red Team Use Only
+
+.NOTES
+    Use responsibly. Tool is intended for training, testing, and red team simulation in controlled environments.
+#>
+
 param (
     [switch]$silentMode
 )
