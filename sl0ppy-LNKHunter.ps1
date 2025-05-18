@@ -1,33 +1,35 @@
 <#
 .SYNOPSIS
-    sl0ppy-ExecGhost – Scans for vulnerable executables that can be leveraged for UAC bypass or privilege escalation.
+    sl0ppy-LNKHunter – Scanner for abusable executables and LOLBins on Windows systems.
 
 .DESCRIPTION
-    This tool searches key system directories for known abusable executables and LOLBins (e.g., mshta.exe, certutil.exe, cmstp.exe).
-    Useful for red teams, threat emulation, and post-exploitation recon to identify escalation and execution paths.
-    Includes support for Windows 10, 11, 12 (pre-release), and Server 2019/2022.
+    This script scans common system and user directories to find vulnerable executables
+    that can be abused for privilege escalation, or living-off-the-land attacks.
+    Ideal for red teams and penetration testers seeking post-exploitation vectors.
+    
+.PARAMETER silentMode
+    When specified, limits output to essential information only.
 
 .AUTHOR
-    P. Hoogeveen (@x0xr00t) – Sl0ppyRoot Team  
-    Partial dev by @keytrap-x86 – OS version logic enhancements.
+    P. Hoogeveen (@x0xr00t) – Sl0ppyRoot Team
 
 .VERSION
-    20241007
+    20251805
 
 .TOOLNAME
-    sl0ppy-ExecGhost
+    sl0ppy-LNKHunter
 
 .IMPACT
-    Privilege Escalation · LOLBin Discovery · Living-off-the-Land Enumeration
+    Privilege Escalation · Execution Vector Discovery · LOLBin Enumeration
 
 .METHODS
-    DLLReflection · CMSTP Bypass · Executable Hijack Path Scan
+    File System Enumeration · Executable Search in Key System Paths
 
 .LICENSE
-    Sl0ppyRed™ CyberOps Arsenal – Internal Red Team Use Only
+    Sl0ppyRed™ CyberOps Arsenal – Authorized Red Team Use Only
 
 .NOTES
-    Use responsibly. Tool is intended for training, testing, and red team simulation in controlled environments.
+    Use responsibly and ensure all actions comply with applicable laws and policies.
 #>
 
 param (
