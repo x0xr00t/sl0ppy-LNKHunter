@@ -38,13 +38,92 @@
 ---
 
 ## 📋 **Installation**
-
+```
 ### **Requirements**
 - **PowerShell 5.1 or later**
 - **Windows 7 / Server 2012 or newer**
 - **Administrator privileges** (for all-user scans)
+```
 
 ### **Quick Start**
+```
 1. **Download the script**:
    ```powershell
-   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/x0xr00t/sl0ppy-LNKHunter/main/sl0ppy-LNKHunter.ps1" -OutFile "sl0ppy-LNKHunter.ps1"
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sl0ppyroot/sl0ppy-LNKHunter/main/sl0ppy-LNKHunter.ps1" -OutFile "sl0ppy-LNKHunter.ps1"
+
+Run a basic scan:
+.\sl0ppy-LNKHunter.ps1
+
+(Optional) Enable execution policy (if blocked):
+Set-ExecutionPolicy Bypass -Scope Process -Force
+```
+
+
+## 🚀 Usage
+```
+Basic Scan
+.\sl0ppy-LNKHunter.ps1
+Scans common system paths for suspicious LNK files and LOLBins.
+Deep Scan (Recursive)
+.\sl0ppy-LNKHunter.ps1 -DeepScan
+Recursively scans all subdirectories for hidden threats.
+Scan All Users (Admin Required)
+.\sl0ppy-LNKHunter.ps1 -ScanAllUsers
+Scans all user profiles on the system.
+Silent Mode (Automation-Friendly)
+.\sl0ppy-LNKHunter.ps1 -SilentMode -Export CSV
+Runs quietly and exports results to a CSV file.
+Full Comprehensive Scan
+.\sl0ppy-LNKHunter.ps1 -DeepScan -ScanAllUsers -Export JSON
+Maximal detection with JSON output.
+```
+
+## 📊 Output Examples
+```
+Suspicious LNK Detection
+[HIGH] C:\Users\Admin\Desktop\malicious.lnk
+   Target: powershell.exe -nop -ep bypass -enc JABXAG...
+   Args: -WindowStyle Hidden
+   Indicators: Base64-encoded command; Hidden window; PowerShell abuse
+   Modified: 2025-10-08 14:30:45 | Size: 1024 bytes
+LOLBin Discovery
+[+] Found LOLBin: mshta.exe at C:\Windows\System32
+[+] Found LOLBin: wmic.exe at C:\Windows\System32
+[+] Found LOLBin: certutil.exe at C:\Windows\System32
+Export Formats
+
+CSV: Structured data for analysis
+JSON: Machine-readable output
+TXT: Human-readable report
+
+```
+🛡️ Detection Capabilities
+```
+LNK Abuse Patterns
+PowerShell Abuse-nop, -ep bypass, -encCommand ObfuscationfromBase64String, eval(Network Payloadshttp://, \\UNC\pathPersistenceschtasks /create, reg addFileless Executionrundll32 javascript:
+LOLBins Covered
+Classic LOLBinspowershell.exe, wmic.exe, mshta.exeNetwork Toolscurl.exe, bitsadmin.exe, certutil.exeScript Enginespython.exe, node.exe, php.exeCloud Toolsaz.exe, aws.exe, kubectl.exeDebugging Toolswindbg.exe, procdump.exe
+```
+## 🔧 Advanced Options
+```
+-DeepScanRecursive directory scanning-ScanAllUsersScan all user profiles (requires admin)-SilentModeSuppress non-critical output-Export CSVJSONTXTExport results in specified format
+```
+## 📝 Use Cases
+```
+✅ Red Team Engagements – Find attack vectors
+✅ Blue Team Defense – Hunt for malicious LNK files
+✅ Incident Response – Investigate suspicious activity
+✅ Compliance Audits – Verify system security posture
+✅ Threat Hunting – Proactively detect LOLBin abuse
+```
+## ⚠️ Disclaimer
+## Use Responsibly!
+```
+This tool is for authorized security testing only.
+Ensure compliance with laws and organizational policies.
+Do not use on systems without permission.
+```
+
+
+© 2025 Sl0ppyRoot Team | v2.0
+"Because LNK files shouldn’t be a backdoor."
