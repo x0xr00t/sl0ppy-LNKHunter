@@ -3,7 +3,7 @@
 
 [![PowerShell](https://img.shields.io/badge/PowerShell-5.1+-5391FE.svg)](https://docs.microsoft.com/en-us/powershell/)
 [![Windows](https://img.shields.io/badge/Windows-7%2F8%2F10%2F11%2FServer-blue)](https://www.microsoft.com/windows)
-[![License](https://img.shields.io/badge/License-Sl0ppyRed-orange)](https://github.com/sl0ppyroot)
+[![License](https://img.shields.io/badge/License-Sl0ppyRed-orange)](https://github.com/x0xr00t)
 
 **Sl0ppy-LNKHunter** is a comprehensive PowerShell tool designed to detect malicious LNK files and Living-off-the-Land Binaries (LOLBins) that could be abused for privilege escalation, persistence, or lateral movement in Windows environments.
 
@@ -47,4 +47,4 @@
 ### **Quick Start**
 1. **Download the script**:
    ```powershell
-   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sl0ppyroot/sl0ppy-LNKHunter/main/sl0ppy-LNKHunter.ps1" -OutFile "sl0ppy-LNKHunter.ps1"
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/x0xr00t/sl0ppy-LNKHunter/main/sl0ppy-LNKHunter.ps1" -OutFile "sl0ppy-LNKHunter.ps1"
