@@ -153,26 +153,443 @@ $global:LOLBins = $rawLOLBins | ForEach-Object { $_.Trim() } | Where-Object { $_
 
 # LNK abuse patterns (kept but tuned)
 $global:LNKAbusePatterns = @(
-    'powershell\.exe.*(-nop|-ep\s+bypass|-enc\b|-EncodedCommand|-c\b)',
-    'cmd\.exe.*(/c|/r|/k)',
-    'wscript\.exe.*//e:','cscript\.exe.*//e:',
-    'mshta\.exe.*(http|javascript:)',
-    'frombase64string','fromcharcode','eval\(','invoke-?expression',
-    'downloadstring','downloadfile','net\.webclient',
-    '-nop\s+-w\s+hidden','-windowstyle\s+hidden',
-    '/c\s+powershell','/c\s+certutil','/c\s+bitsadmin',
-    'curl\.exe.*-o','wget\.exe.*-O','bitsadmin\.exe.*/transfer',
-    'certutil\.exe.*-decode','certutil\.exe.*-urlcache',
-    'schtasks\.exe.*/create','at\.exe.*\d+:\d+','reg\.exe.*add.*run',
-    'python\.exe.*-c','node\.exe.*-e','php\.exe.*-r',
-    'az\.exe.*login','aws\.exe.*configure','kubectl\.exe.*apply',
-    'rundll32\.exe.*javascript:','regsvr32\.exe.*/s\s+/u','msiexec\.exe.*/i\s+http',
-    'wmic\.exe.*process\s+call\s+create',
-    'winget\.exe.*install','appinstaller\.exe.*install',
-    'msedge\.exe.*--gpu-launcher','protocolhandler\.exe.*--handle',
-    'computerdefaults\.exe.*--set','fodhelper\.exe.*-p'
-)
 
+    # ==========================================================================
+    # 01. POWERSHELL EXECUTION ABUSE
+    # ==========================================================================
+
+    'powershell(?:\.exe)?\s+.*(?:-nop\b|-noprofile\b)',
+    'powershell(?:\.exe)?\s+.*(?:-ep\s+bypass|-executionpolicy\s+bypass)',
+    'powershell(?:\.exe)?\s+.*(?:-enc(?:odedcommand)?\s+[A-Za-z0-9+/=]{20,})',
+    'powershell(?:\.exe)?\s+.*-windowstyle\s+(?:hidden|h)',
+    'powershell(?:\.exe)?\s+.*-w\s+hidden',
+    'powershell(?:\.exe)?\s+.*-noninteractive',
+    'powershell(?:\.exe)?\s+.*-noni\b',
+    'powershell(?:\.exe)?\s+.*-sta\b',
+    'powershell(?:\.exe)?\s+.*-mta\b',
+    'powershell(?:\.exe)?\s+.*-command\s+.*(?:downloadstring|invoke-expression)',
+    'powershell(?:\.exe)?\s+.*(?:iex|invoke-expression)',
+    'powershell(?:\.exe)?\s+.*frombase64string',
+    'powershell(?:\.exe)?\s+.*fromcharcode',
+    'powershell(?:\.exe)?\s+.*(?:reflection\.assembly|loadfrom|loadfile)',
+    'powershell(?:\.exe)?\s+.*(?:add-mppreference|set-mppreference)',
+    'powershell(?:\.exe)?\s+.*(?:disable-realtimemonitoring|exclusionpath)',
+    'powershell(?:\.exe)?\s+.*(?:amsiutils|amsiinitfailed)',
+    'powershell(?:\.exe)?\s+.*(?:virtualprotect|marshal\.copy)',
+    'powershell(?:\.exe)?\s+.*(?:invoke-webrequest|iwr)\s+.*https?://',
+    'powershell(?:\.exe)?\s+.*(?:invoke-restmethod|irm)\s+.*https?://',
+    'powershell(?:\.exe)?\s+.*(?:downloadstring|downloadfile)',
+    'powershell(?:\.exe)?\s+.*(?:start-bitstransfer|net\.webclient)',
+    'powershell(?:\.exe)?\s+.*(?:set-executionpolicy|unrestricted)',
+    'powershell(?:\.exe)?\s+.*(?:add-type|dynamicmethod)',
+    'powershell(?:\.exe)?\s+.*(?:scriptblock::create|createnestedpipeline)',
+    'powershell(?:\.exe)?\s+.*(?:-file\s+.*\\appdata\\|\\temp\\)',
+    'powershell(?:\.exe)?\s+.*(?:-encodedarguments|-e\s+[A-Za-z0-9+/=]{20,})',
+
+    # ==========================================================================
+    # 02. POWERSHELL 7 / ALTERNATE HOSTS
+    # ==========================================================================
+
+    'pwsh(?:\.exe)?\s+.*(?:-nop\b|-noprofile\b)',
+    'pwsh(?:\.exe)?\s+.*(?:-ep\s+bypass|-executionpolicy\s+bypass)',
+    'pwsh(?:\.exe)?\s+.*(?:-enc(?:odedcommand)?\s+[A-Za-z0-9+/=]{20,})',
+    'pwsh(?:\.exe)?\s+.*(?:-w\s+hidden|-windowstyle\s+hidden)',
+    'pwsh(?:\.exe)?\s+.*(?:downloadstring|downloadfile|frombase64string)',
+    'powershell_ise(?:\.exe)?\s+.*(?:-file|-command)',
+
+    # ==========================================================================
+    # 03. CMD / COMMAND INTERPRETER ABUSE
+    # ==========================================================================
+
+    'cmd(?:\.exe)?\s+.*(?:/c|/r|/k)\s+.*(?:powershell|pwsh)',
+    'cmd(?:\.exe)?\s+.*(?:/c|/r|/k)\s+.*(?:mshta|rundll32|regsvr32)',
+    'cmd(?:\.exe)?\s+.*(?:/c|/r|/k)\s+.*(?:certutil|bitsadmin)',
+    'cmd(?:\.exe)?\s+.*(?:/c|/r|/k)\s+.*(?:curl|wget)',
+    'cmd(?:\.exe)?\s+.*(?:/c|/r|/k)\s+.*(?:wscript|cscript)',
+    'cmd(?:\.exe)?\s+.*(?:/c|/r|/k)\s+.*(?:schtasks|reg\s+add)',
+    'cmd(?:\.exe)?\s+.*(?:/c|/r|/k)\s+.*(?:\\appdata\\|\\temp\\)',
+    'cmd(?:\.exe)?\s+.*(?:&&|\|\|)\s+.*(?:powershell|mshta|rundll32)',
+    'cmd(?:\.exe)?\s+.*(?:>nul\s+2>&1|2>&1\s+>nul).*(?:certutil|schtasks)',
+    'cmd(?:\.exe)?\s+.*(?:set\s+/p|for\s+/f).*(?:powershell|certutil)',
+
+    # ==========================================================================
+    # 04. WINDOWS SCRIPT HOST / SCRIPT EXECUTION
+    # ==========================================================================
+
+    'wscript(?:\.exe)?\s+.*(?:\.vbs|\.js|\.jse|\.vbe|\.wsf)',
+    'cscript(?:\.exe)?\s+.*(?:\.vbs|\.js|\.jse|\.vbe|\.wsf)',
+    '(?:wscript|cscript)(?:\.exe)?\s+.*//e:',
+    '(?:wscript|cscript)(?:\.exe)?\s+.*//b.*//nologo',
+    'wscript(?:\.exe)?\s+.*\\appdata\\',
+    'cscript(?:\.exe)?\s+.*\\temp\\',
+    'wscript(?:\.exe)?\s+.*https?://',
+    'cscript(?:\.exe)?\s+.*https?://',
+    'scriptcontrol.*(?:eval|execute)',
+    'msscriptcontrol.*(?:eval|execute)',
+
+    # ==========================================================================
+    # 05. MSHTA / HTML APPLICATION EXECUTION
+    # ==========================================================================
+
+    'mshta(?:\.exe)?\s+.*https?://',
+    'mshta(?:\.exe)?\s+.*javascript:',
+    'mshta(?:\.exe)?\s+.*vbscript:',
+    'mshta(?:\.exe)?\s+.*about:',
+    'mshta(?:\.exe)?\s+.*(?:\.hta|\.sct)',
+    'mshta(?:\.exe)?\s+.*eval\s*\(',
+    'mshta(?:\.exe)?\s+.*activexobject',
+    'mshta(?:\.exe)?\s+.*xmlhttp',
+    'mshta(?:\.exe)?\s+.*responsebody',
+    'mshta(?:\.exe)?\s+.*execscript',
+
+    # ==========================================================================
+    # 06. RUNDLL32 / REGSVR32 / DLL PROXY EXECUTION
+    # ==========================================================================
+
+    'rundll32(?:\.exe)?\s+.*javascript:',
+    'rundll32(?:\.exe)?\s+.*vbscript:',
+    'rundll32(?:\.exe)?\s+.*url\.dll',
+    'rundll32(?:\.exe)?\s+.*shell32\.dll.*control_rundll',
+    'rundll32(?:\.exe)?\s+.*(?:\\appdata\\|\\temp\\).*\.dll',
+    'rundll32(?:\.exe)?\s+.*(?:javascript|mshtml|scrobj)',
+    'regsvr32(?:\.exe)?\s+.*(?:/s|/i:).*(?:https?://|scrobj\.dll)',
+    'regsvr32(?:\.exe)?\s+.*scrobj\.dll',
+    'regsvr32(?:\.exe)?\s+.*https?://',
+    'regsvr32(?:\.exe)?\s+.*\.sct',
+    'regsvr32(?:\.exe)?\s+.*(?:\\temp\\|\\appdata\\)',
+    'regasm(?:\.exe)?\s+.*\.dll',
+    'regsvcs(?:\.exe)?\s+.*\.dll',
+
+    # ==========================================================================
+    # 07. CERTUTIL / BITSADMIN / FILE TRANSFER LOLBINS
+    # ==========================================================================
+
+    'certutil(?:\.exe)?\s+.*-urlcache',
+    'certutil(?:\.exe)?\s+.*-decode',
+    'certutil(?:\.exe)?\s+.*-decodehex',
+    'certutil(?:\.exe)?\s+.*-encode',
+    'certutil(?:\.exe)?\s+.*-split.*-f',
+    'certutil(?:\.exe)?\s+.*https?://',
+    'bitsadmin(?:\.exe)?\s+.*\/transfer',
+    'bitsadmin(?:\.exe)?\s+.*\/download',
+    'bitsadmin(?:\.exe)?\s+.*\/addfile',
+    'bitsadmin(?:\.exe)?\s+.*\/setnotifycmdline',
+    'bitsadmin(?:\.exe)?\s+.*https?://',
+    'curl(?:\.exe)?\s+.*(?:-o|-O|--output)\s+.*',
+    'curl(?:\.exe)?\s+.*(?:-k|--insecure).*(?:https?://)',
+    'wget(?:\.exe)?\s+.*(?:-O|--output-document)',
+    'wget(?:\.exe)?\s+.*https?://',
+    'ftp(?:\.exe)?\s+.*(?:-s:|get\s+|put\s+)',
+    'tftp(?:\.exe)?\s+.*(?:get|put)',
+    'expand(?:\.exe)?\s+.*-r.*\.cab',
+    'esentutl(?:\.exe)?\s+.*\/y.*\/d',
+
+    # ==========================================================================
+    # 08. ARCHIVE / PAYLOAD EXTRACTION
+    # ==========================================================================
+
+    'tar(?:\.exe)?\s+.*(?:-xf|-xvf).*(?:\\temp\\|\\appdata\\)',
+    '7z(?:\.exe)?\s+.*(?:x|e)\s+.*(?:\\temp\\|\\appdata\\)',
+    '7za(?:\.exe)?\s+.*(?:x|e)\s+',
+    'expand(?:\.exe)?\s+.*\.cab.*(?:\\temp\\|\\appdata\\)',
+    'makecab(?:\.exe)?\s+.*\.exe',
+    'extrac32(?:\.exe)?\s+.*\.cab',
+    'compact(?:\.exe)?\s+.*\/u.*\.exe',
+
+    # ==========================================================================
+    # 09. MSHTA / MSI / INSTALLER ABUSE
+    # ==========================================================================
+
+    'msiexec(?:\.exe)?\s+.*(?:\/i|\/package).*(?:https?://)',
+    'msiexec(?:\.exe)?\s+.*(?:\/q|\/quiet).*(?:https?://)',
+    'msiexec(?:\.exe)?\s+.*(?:\\appdata\\|\\temp\\).*\.msi',
+    'msiexec(?:\.exe)?\s+.*\/z.*https?://',
+    'msiexec(?:\.exe)?\s+.*\/y.*\.dll',
+    'installutil(?:\.exe)?\s+.*\/logfile=.*\.exe',
+    'installutil(?:\.exe)?\s+.*\/logtoconsole=false',
+    'odbcconf(?:\.exe)?\s+.*\/a\s+\{regsvr',
+    'dfsvc(?:\.exe)?\s+.*https?://',
+
+    # ==========================================================================
+    # 10. SCHEDULED TASK / PERSISTENCE
+    # ==========================================================================
+
+    'schtasks(?:\.exe)?\s+.*\/create',
+    'schtasks(?:\.exe)?\s+.*\/change.*\/tr',
+    'schtasks(?:\.exe)?\s+.*\/create.*\/sc\s+onlogon',
+    'schtasks(?:\.exe)?\s+.*\/create.*\/sc\s+onstart',
+    'schtasks(?:\.exe)?\s+.*\/create.*\/ru\s+system',
+    'schtasks(?:\.exe)?\s+.*\/create.*(?:powershell|mshta|wscript)',
+    'schtasks(?:\.exe)?\s+.*\/create.*(?:\\appdata\\|\\temp\\)',
+    'at(?:\.exe)?\s+\d{1,2}:\d{2}.*(?:cmd|powershell)',
+    'reg(?:\.exe)?\s+add\s+.*\\run(?:once)?',
+    'reg(?:\.exe)?\s+add\s+.*\\winlogon',
+    'reg(?:\.exe)?\s+add\s+.*\\image\s+file\s+execution',
+    'reg(?:\.exe)?\s+add\s+.*\\appinit_dlls',
+    'reg(?:\.exe)?\s+add\s+.*\\shell\\open\\command',
+    'reg(?:\.exe)?\s+add\s+.*\\command\s+processor',
+    'reg(?:\.exe)?\s+add\s+.*\\services\\',
+    'sc(?:\.exe)?\s+create\s+.*(?:binpath|binpath=)',
+    'sc(?:\.exe)?\s+config\s+.*binpath',
+    'schtasks(?:\.exe)?\s+.*\/delete.*\/f',
+
+    # ==========================================================================
+    # 11. UAC BYPASS / AUTO-ELEVATION INDICATORS
+    # ==========================================================================
+
+    'fodhelper(?:\.exe)?\s+.*',
+    'computerdefaults(?:\.exe)?\s+.*',
+    'eventvwr(?:\.exe)?\s+.*(?:mmc|msc)',
+    'sdclt(?:\.exe)?\s+.*',
+    'slui(?:\.exe)?\s+.*',
+    'wsreset(?:\.exe)?\s+.*',
+    'computerdefaults(?:\.exe)?.*(?:\/|--)',
+    'cmstp(?:\.exe)?\s+.*\.inf',
+    'cmstp(?:\.exe)?\s+.*\/s',
+    'consent(?:\.exe)?\s+.*',
+
+    # ==========================================================================
+    # 12. WMI / WMIC EXECUTION
+    # ==========================================================================
+
+    'wmic(?:\.exe)?\s+.*process\s+call\s+create',
+    'wmic(?:\.exe)?\s+.*\/node:.*process',
+    'wmic(?:\.exe)?\s+.*shadowcopy\s+delete',
+    'wmic(?:\.exe)?\s+.*startup\s+create',
+    'wmic(?:\.exe)?\s+.*product.*call.*uninstall',
+    'wmic(?:\.exe)?\s+.*os.*get.*caption',
+    'wmic(?:\.exe)?\s+.*service.*call.*create',
+
+    # ==========================================================================
+    # 13. SCRIPTING / DEVELOPMENT RUNTIME ABUSE
+    # ==========================================================================
+
+    'python(?:w)?(?:\.exe)?\s+.*-c\s+.*(?:exec|eval|compile)',
+    'python(?:w)?(?:\.exe)?\s+.*-c\s+.*(?:urllib|requests|socket)',
+    'python(?:w)?(?:\.exe)?\s+.*(?:base64|b64decode)',
+    'python(?:w)?(?:\.exe)?\s+.*https?://.*(?:exec|eval)',
+    'python(?:w)?(?:\.exe)?\s+.*(?:\\appdata\\|\\temp\\).*\.py',
+    'node(?:\.exe)?\s+.*-e\s+.*(?:child_process|exec|spawn)',
+    'node(?:\.exe)?\s+.*-e\s+.*(?:http|https|Buffer)',
+    'node(?:\.exe)?\s+.*(?:eval|Function)\s*\(',
+    'php(?:\.exe)?\s+.*-r\s+.*(?:exec|system|shell_exec)',
+    'ruby(?:\.exe)?\s+.*-e\s+.*(?:exec|system|eval)',
+    'perl(?:\.exe)?\s+.*-e\s+.*(?:exec|system)',
+    'java(?:\.exe)?\s+.*-jar\s+.*(?:\\temp\\|\\appdata\\)',
+    'java(?:\.exe)?\s+.*-javaagent:',
+    'java(?:\.exe)?\s+.*(?:Runtime\.getRuntime|ProcessBuilder)',
+    'dotnet(?:\.exe)?\s+.*(?:exec|tool)',
+    'msbuild(?:\.exe)?\s+.*\.proj',
+    'msbuild(?:\.exe)?\s+.*\.xml',
+    'vbc(?:\.exe)?\s+.*\.vb',
+    'csc(?:\.exe)?\s+.*\.cs',
+
+    # ==========================================================================
+    # 14. ADVANCED .NET / ASSEMBLY EXECUTION
+    # ==========================================================================
+
+    'regasm(?:\.exe)?\s+.*\/codebase',
+    'regasm(?:\.exe)?\s+.*\/tlb',
+    'regsvcs(?:\.exe)?\s+.*\/fc',
+    'rundll32(?:\.exe)?\s+.*clr\.dll',
+    'mscoree\.dll.*(?:load|execute)',
+    'assembly\.load(?:from|file)?',
+    'reflection\.assembly.*load',
+    'system\.reflection.*assembly',
+    'system\.management\.automation.*powershell',
+    'system\.diagnostics\.process.*start',
+    'system\.net\.webclient.*download',
+
+    # ==========================================================================
+    # 15. DEFENSE EVASION / SECURITY TAMPERING
+    # ==========================================================================
+
+    '.*(?:set-mppreference|add-mppreference).*disable',
+    '.*disable-realtimemonitoring',
+    '.*disablebehaviormonitoring',
+    '.*disablescriptscanning',
+    '.*disableioavprotection',
+    '.*exclusionpath.*(?:add|set)',
+    '.*exclusionprocess.*(?:add|set)',
+    '.*exclusionextension.*(?:add|set)',
+    'sc(?:\.exe)?\s+stop\s+(?:windefend|sense|wscsvc)',
+    'net(?:\.exe)?\s+stop\s+(?:windefend|sense)',
+    'taskkill(?:\.exe)?\s+.*\/f\s+\/im\s+(?:MsMpEng|SenseIR|SecurityHealthService)',
+    '.*(?:tamperprotection|disableantispyware)',
+    '.*(?:bcdedit).*\/set.*(?:debug|testsigning|nointegritychecks)',
+    '.*wevtutil(?:\.exe)?.*cl\s+(?:security|system|application)',
+    '.*clear-eventlog.*(?:security|system)',
+    '.*vssadmin(?:\.exe)?\s+delete\s+shadows',
+    '.*wbadmin(?:\.exe)?\s+delete\s+catalog',
+    '.*reagentc(?:\.exe)?\s+\/disable',
+
+    # ==========================================================================
+    # 16. ENCODING / OBFUSCATION INDICATORS
+    # ==========================================================================
+
+    'frombase64string\s*\(',
+    'fromcharcode\s*\(',
+    'tobase64string\s*\(',
+    'convert::frombase64string',
+    'convert::tobase64string',
+    'decode\s*\(\s*base64',
+    'base64_decode\s*\(',
+    'b64decode\s*\(',
+    'gzipstream',
+    'deflatestream',
+    'memorystream',
+    'scriptblock::create',
+    'invoke-expression',
+    'invoke-?expression',
+    'iex\s*\(',
+    'eval\s*\(',
+    'new-object\s+.*net\.webclient',
+    'char\s*\[\]\s*\$',
+    'join\s*\(.*char',
+    '\[char\]\s*\d{2,3}',
+    '0x[0-9a-f]{4,}',
+    '(?:\\x[0-9a-f]{2}){4,}',
+    '(?:%[0-9a-f]{2}){4,}',
+    'window\.atob\s*\(',
+    'decodeuricomponent\s*\(',
+    'unescape\s*\(',
+
+    # ==========================================================================
+    # 17. REMOTE EXECUTION / NETWORK ABUSE
+    # ==========================================================================
+
+    'psexec(?:\.exe)?\s+.*\\\\[a-z0-9.-]+',
+    'paexec(?:\.exe)?\s+.*\\\\[a-z0-9.-]+',
+    'winrs(?:\.exe)?\s+.*-r:',
+    'winrm(?:\.vbs)?\s+.*invoke',
+    'enter-pssession\s+.*-computername',
+    'invoke-command\s+.*-computername',
+    'invoke-command\s+.*-scriptblock',
+    'mstsc(?:\.exe)?\s+.*\/v:',
+    'ssh(?:\.exe)?\s+.*(?:-p\s+\d+|@)',
+    'scp(?:\.exe)?\s+.*@',
+    'plink(?:\.exe)?\s+.*-ssh',
+    'nc(?:\.exe)?\s+.*-e\s+',
+    'ncat(?:\.exe)?\s+.*-e\s+',
+    'socat(?:\.exe)?\s+.*exec:',
+    '.*(?:reverse_tcp|reverse_https|bind_tcp)',
+    '.*(?:meterpreter|beacon\.dll|payload\.dll)',
+
+    # ==========================================================================
+    # 18. FILELESS / TEMPORARY EXECUTION LOCATIONS
+    # ==========================================================================
+
+    '.*\\users\\[^\\]+\\appdata\\local\\temp\\.*\.(?:exe|dll|bat|cmd|ps1|vbs|js)',
+    '.*\\users\\[^\\]+\\appdata\\roaming\\.*\.(?:exe|dll|bat|cmd|ps1|vbs|js)',
+    '.*\\programdata\\.*\.(?:exe|dll|bat|cmd|ps1|vbs)',
+    '.*\\windows\\temp\\.*\.(?:exe|dll|bat|cmd|ps1|vbs)',
+    '.*\\downloads\\.*\.(?:exe|dll|bat|cmd|ps1)',
+    '.*\\public\\.*\.(?:exe|dll|bat|cmd|ps1)',
+    '.*\\appdata\\local\\packages\\.*\.(?:exe|dll)',
+    '.*\\users\\public\\.*\.(?:exe|dll|ps1)',
+
+    # ==========================================================================
+    # 19. SHORTCUT / LNK SPECIFIC INDICATORS
+    # ==========================================================================
+
+    '.*(?:targetpath|arguments).*(?:powershell|pwsh|cmd\.exe)',
+    '.*(?:targetpath|arguments).*(?:mshta|rundll32|regsvr32)',
+    '.*(?:targetpath|arguments).*(?:wscript|cscript)',
+    '.*(?:targetpath|arguments).*(?:certutil|bitsadmin)',
+    '.*(?:targetpath|arguments).*https?://',
+    '.*(?:targetpath|arguments).*(?:javascript:|vbscript:)',
+    '.*(?:targetpath|arguments).*(-encodedcommand|-enc\s)',
+    '.*(?:targetpath|arguments).*(?:-windowstyle\s+hidden|-w\s+hidden)',
+    '.*(?:targetpath|arguments).*\\appdata\\.*(?:\.exe|\.dll|\.ps1)',
+    '.*(?:targetpath|arguments).*(?:/c|/r|/k)\s+.*(?:powershell|mshta)',
+    '.*(?:targetpath|arguments).*(?:%comspec%|%windir%|%temp%)',
+    '.*(?:targetpath|arguments).*(?:javascript:|vbscript:|about:)',
+
+    # ==========================================================================
+    # 20. CLOUD / CONTAINER / ADMIN TOOL ABUSE
+    # ==========================================================================
+
+    'az(?:\.exe)?\s+login.*--service-principal',
+    'az(?:\.exe)?\s+account\s+get-access-token',
+    'aws(?:\.exe)?\s+configure\s+.*--profile',
+    'aws(?:\.exe)?\s+sts\s+get-caller-identity',
+    'kubectl(?:\.exe)?\s+.*(?:apply|create|exec|run)',
+    'docker(?:\.exe)?\s+.*(?:exec|run|mount)',
+    'podman(?:\.exe)?\s+.*(?:exec|run)',
+    'rclone(?:\.exe)?\s+.*(?:copy|sync).*https?://',
+    'rclone(?:\.exe)?\s+.*config\s+create',
+    'terraform(?:\.exe)?\s+.*(?:apply|destroy)',
+    'ssh-keygen(?:\.exe)?\s+.*-f\s+.*',
+
+    # ==========================================================================
+    # 21. PROXY EXECUTION / SYSTEM UTILITIES
+    # ==========================================================================
+
+    'forfiles(?:\.exe)?\s+.*\/c\s+.*(?:cmd|powershell)',
+    'pcalua(?:\.exe)?\s+.*-a\s+.*',
+    'presentationhost(?:\.exe)?\s+.*\.xbap',
+    'control(?:\.exe)?\s+.*\.cpl',
+    'mmc(?:\.exe)?\s+.*\.msc',
+    'explorer(?:\.exe)?\s+.*(?:javascript:|shell:appsfolder)',
+    'dllhost(?:\.exe)?\s+.*\/processid:',
+    'syncappvpublishingserver(?:\.exe)?\s+.*',
+    'gpscript(?:\.exe)?\s+.*',
+    'regedit(?:\.exe)?\s+.*\/s\s+.*\.reg',
+
+    # ==========================================================================
+    # 22. SUSPICIOUS COMMAND CHAINING
+    # ==========================================================================
+
+    '.*(?:&&|\|\|)\s*(?:powershell|pwsh|mshta|rundll32|regsvr32)',
+    '.*(?:;|\|)\s*(?:powershell|pwsh|cmd\.exe|mshta)',
+    '.*(?:&|&&)\s*certutil.*-urlcache',
+    '.*(?:&|&&)\s*bitsadmin.*\/transfer',
+    '.*(?:&|&&)\s*reg(?:\.exe)?\s+add.*\\run',
+    '.*(?:&|&&)\s*schtasks.*\/create',
+    '.*(?:&|&&)\s*curl.*(?:-o|-O)',
+    '.*(?:&|&&)\s*wget.*-O',
+
+    # ==========================================================================
+    # 23. SUSPICIOUS EXECUTION FROM USER-WRITABLE LOCATIONS
+    # ==========================================================================
+
+    '(?:^|[\s"])%temp%\\.*\.(?:exe|dll|bat|cmd|ps1)',
+    '(?:^|[\s"])%appdata%\\.*\.(?:exe|dll|bat|cmd|ps1)',
+    '(?:^|[\s"])%localappdata%\\.*\.(?:exe|dll|bat|cmd|ps1)',
+    '(?:^|[\s"])%programdata%\\.*\.(?:exe|dll|bat|cmd|ps1)',
+    '.*\\users\\public\\.*\.(?:exe|dll|ps1)',
+    '.*\\recycler\\.*\.(?:exe|dll|bat|cmd)',
+    '.*\\$recycle\.bin\\.*\.(?:exe|dll|ps1)',
+
+    # ==========================================================================
+    # 24. SUSPICIOUS WINDOWS PROTOCOL / SHELL INVOCATION
+    # ==========================================================================
+
+    '.*(?:ms-settings|search-ms|search:|shell:).*',
+    '.*(?:file|javascript|vbscript):.*(?:powershell|cmd|mshta)',
+    '.*shell:startup.*(?:powershell|cmd|wscript)',
+    '.*shell:common startup.*(?:powershell|cmd|wscript)',
+    '.*(?:url:|https?://).*(?:\.hta|\.sct|\.js|\.jse)',
+    '.*(?:ms-msdt|ms-officecmd|ms-excel).*',
+
+    # ==========================================================================
+    # 25. HIGH-CONFIDENCE PAYLOAD EXECUTION COMBINATIONS
+    # ==========================================================================
+
+    '(?:powershell|pwsh).*(?:downloadstring|downloadfile).*(?:iex|invoke-expression)',
+    '(?:powershell|pwsh).*(?:frombase64string).*(?:iex|invoke-expression)',
+    '(?:certutil|bitsadmin).*(?:https?://).*(?:\.exe|\.dll|\.ps1)',
+    '(?:mshta|rundll32|regsvr32).*(?:https?://|javascript:|vbscript:)',
+    '(?:cmd|powershell).*(?:\\appdata\\|\\temp\\).*(?:\.exe|\.dll)',
+    '(?:wscript|cscript).*(?:\\appdata\\|\\temp\\).*\.(?:vbs|js|jse)',
+    '(?:schtasks|reg).*(?:powershell|mshta|wscript).*(?:hidden|encoded)',
+    '(?:curl|wget).*(?:https?://).*(?:\.exe|\.dll|\.ps1)',
+
+    # ==========================================================================
+    # END OF SIGNATURE DATABASE
+    # ==========================================================================
+
+)
 # Suspicious file extensions in LNK targets
 $global:SuspiciousExtensions = @('.ps1','.vbs','.vbe','.js','.jse','.wsf','.wsh','.bat','.cmd','.hta','.jar','.py','.pl','.rb')
 
